@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  golf-booking-bot:
+    build: .
+    container_name: golf-booking-bot
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - HEADLESS_MODE=true
+      - LOG_LEVEL=info
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+      - ./screenshots:/app/screenshots
+      - ./config.json:/app/config.json:ro
+    networks:
+      - golf-bot-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('Bot is healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Add a reverse proxy for monitoring
+  nginx:
+    image: nginx:alpine
+    container_name: golf-bot-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./logs:/var/log/nginx
+    depends_on:
+      - golf-booking-bot
+    networks:
+      - golf-bot-network
+    profiles:
+      - monitoring
+
+networks:
+  golf-bot-network:
+    driver: bridge
+
+volumes:
+  logs:
+  screenshots:
