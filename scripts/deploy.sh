@@ -89,3 +89,4 @@ echo "- Edit settings: .env"
 echo "- View config: docker-compose config"
 echo ""
 echo "🚀 Bot is now running and will attempt bookings at midnight!"
+

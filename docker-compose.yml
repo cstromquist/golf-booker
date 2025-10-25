@@ -47,3 +47,4 @@ networks:
 volumes:
   logs:
   screenshots:
+
