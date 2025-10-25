@@ -67,11 +67,11 @@ async function runSmartBooking(targetDate = null) {
         // Player count preferences (try in order)
         const playerCounts = [4, 3, 2, 1];
         
-        // Navigate to booking page
+        // Navigate to booking page with target date in URL
         // Use the target date for the URL (format: YYYY-MM-DD)
         const urlDate = config.targetDate;
-        await page.goto(`https://lomas-santa-fe-executive-golf-course.book.teeitup.com/teetimes?course=1241&date=${urlDate}&max=999999`);
-        console.log('✅ Navigated to booking page');
+        await page.goto(`https://lomas-santa-fe-executive-golf-course.book.teeitup.com/teetimes?course=1241&date=${urlDate}&holes=18&max=999999`);
+        console.log(`✅ Navigated to booking page for date: ${config.targetDate}`);
         
         // Login
         await page.getByTestId('core-login-signup').click();
@@ -80,39 +80,12 @@ async function runSmartBooking(targetDate = null) {
         await page.getByTestId('login-button').click();
         console.log('✅ Logged in successfully');
         
-        // Wait for login to complete
-        await page.waitForTimeout(3000);
-        
-        // Select target date
-        const day = config.targetDate.split('-')[2];
-        console.log(`🎯 Looking for date: ${config.targetDate} (day: ${day})`);
-        
-        try {
-            // Try to find and click the date
-            const dateElement = page.getByRole('gridcell', { name: day });
-            await dateElement.waitFor({ timeout: 10000 });
-            await dateElement.click();
-            console.log(`✅ Selected date: ${config.targetDate}`);
-        } catch (error) {
-            console.log(`❌ Could not find date ${day} for ${config.targetDate}`);
-            console.log('💡 This could mean:');
-            console.log('   - The date is not available in the calendar');
-            console.log('   - The date is in the past');
-            console.log('   - The date is too far in the future');
-            console.log('   - Try a different date');
-            return;
-        }
-        
-        // Wait a moment for the page to load after date selection
-        await page.waitForTimeout(2000);
-        
-        // Take a screenshot for debugging
-        await page.screenshot({ path: 'debug-after-date-selection.png' });
-        console.log('📸 Screenshot saved: debug-after-date-selection.png');
+        // Wait for login to complete and page to redirect with the target date
+        await page.waitForTimeout(5000);
         
         // Check for "No Results!" message first
         try {
-            await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 8000 });
+            await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 5000 });
             console.log('❌ No tee times available for the selected date');
             console.log(`📅 Date: ${config.targetDate}`);
             console.log('💡 Try a different date or check back later');
@@ -121,9 +94,6 @@ async function runSmartBooking(targetDate = null) {
             // No "No Results!" message found, continue to check for tee times
             console.log('✅ No "No Results" message found, checking for tee times...');
         }
-        
-        // If we get here, we need to check for tee times
-        console.log('🔍 Checking for available tee times...');
         
         // Check for available tee times
         let teeTimeButtons;
@@ -288,7 +258,9 @@ async function runSmartBooking(targetDate = null) {
             console.log('\n⏳ Closing browser...');
         }
         
-        await browser.close();
+        if (browser) {
+            await browser.close();
+        }
     }
 }
 
