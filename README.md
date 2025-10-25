@@ -64,11 +64,14 @@ The **Smart Golf Booking Bot** uses Playwright codegen to record exact user inte
 # Book for a specific date
 node scripts/book_golf.js 2025-11-15
 
+# Book for next Friday (7 days out) - perfect for automation
+node scripts/book_golf.js
+
 # Or run the main script directly
 node src/playwright/lomas_santa_fe_booking.js 2025-12-25
 
 # Show help
-node scripts/book_golf.js
+node scripts/book_golf.js --help
 ```
 
 ### How It Works
@@ -143,22 +146,104 @@ Found 27 available tee times
 ⏰ Time: Earliest available
 ```
 
-## ⏰ Scheduling for Midnight Releases
+## 🤖 Automation & Hosting Options
 
-For the fastest booking when tee times open at midnight, set up automated scheduling:
+For the fastest booking when tee times open at midnight, you need a reliable hosting solution. Here are your best options:
 
-### Cron Job Setup
+### 🏠 Option 1: Local Computer (Easiest)
 
+**Perfect for**: Getting started quickly and testing
+
+```bash
+# Set up automation on your local computer
+./scripts/setup_local_automation.sh
+```
+
+**Requirements:**
+- Your computer must be ON and AWAKE at midnight every day
+- Great for testing and immediate setup
+- Free to use
+
+**Cron Job Setup:**
 ```bash
 # Edit crontab
 crontab -e
 
-# Add this line to run at midnight daily
-0 0 * * * cd /path/to/golf-booker && node scripts/book_golf.js $(date -d "+1 day" +%Y-%m-%d)
-
-# Or for a specific date (e.g., next Friday)
-0 0 * * 5 cd /path/to/golf-booker && node scripts/book_golf.js $(date -d "next friday" +%Y-%m-%d)
+# Add this line to run every day at midnight
+0 0 * * * cd /path/to/golf-booker && node scripts/book_golf.js
 ```
+
+### 🌊 Option 2: DigitalOcean Droplet (Recommended)
+
+**Perfect for**: 24/7 reliability and professional setup
+
+```bash
+# Follow the DigitalOcean setup guide
+./scripts/setup_digitalocean.sh
+```
+
+**Benefits:**
+- Always-on server (99.99% uptime)
+- $4/month for basic droplet
+- Never miss a booking due to computer being off
+- Professional-grade reliability
+
+**Setup Steps:**
+1. Create DigitalOcean account
+2. Launch Node.js droplet ($4/month)
+3. Upload your golf booking bot
+4. Set up cron job
+5. Monitor logs
+
+### ☁️ Option 3: AWS EC2 (Advanced)
+
+**Perfect for**: Learning cloud computing
+
+- Free tier available for 12 months
+- More complex setup but very powerful
+- Enterprise-grade reliability
+
+### 📅 Cron Job Details
+
+The automation runs every **day at midnight (12:00 AM)** and automatically books for the **next Friday (7 days out)**:
+
+```bash
+# Cron schedule: Every day at midnight
+0 0 * * * /path/to/node /path/to/scripts/book_golf.js >> /path/to/logs/cron.log 2>&1
+```
+
+**Smart Date Calculation:**
+- If run on 10/24 at midnight → books for 10/31
+- If run on 10/25 at midnight → books for 10/31
+- If run on 10/26 at midnight → books for 10/31
+- If run on 10/31 at midnight → books for 11/7
+- And so on...
+
+**Monitoring:**
+```bash
+# Check if cron job is set up
+crontab -l
+
+# Monitor logs
+tail -f logs/cron.log
+
+# Test the bot manually
+node scripts/book_golf.js 2025-11-15  # Specific date
+node scripts/book_golf.js             # Next Friday (7 days out)
+```
+
+### 💰 Cost Comparison
+
+| Option | Monthly Cost | Reliability | Setup Time |
+|--------|-------------|-------------|------------|
+| **Local Computer** | Free | ⚠️ Only if computer is on | 5 minutes |
+| **DigitalOcean** | $4/month | ✅ 99.99% uptime | 15 minutes |
+| **AWS EC2** | Free (12 months) | ✅ 99.99% uptime | 30 minutes |
+| **Heroku** | $7/month | ✅ Good | 10 minutes |
+
+### 🎯 Recommendation
+
+**Start with your local computer** to test everything works, then **move to DigitalOcean** for production reliability.
 
 ### Systemd Service (Linux)
 
@@ -173,7 +258,7 @@ After=network.target
 Type=oneshot
 User=$USER
 WorkingDirectory=$(pwd)
-ExecStart=/usr/bin/node scripts/book_golf.js \$(date -d "+1 day" +%%Y-%%m-%%d)
+ExecStart=/usr/bin/node scripts/book_golf.js
 Restart=no
 
 [Install]
@@ -189,7 +274,7 @@ sudo systemctl enable golf-booking-bot
 
 ```bash
 # Run with Docker at midnight
-docker run --rm -v $(pwd):/app -w /app node:18 node scripts/book_golf.js $(date -d "+1 day" +%Y-%m-%d)
+docker run --rm -v $(pwd):/app -w /app node:18 node scripts/book_golf.js
 ```
 
 ## 📋 Usage
