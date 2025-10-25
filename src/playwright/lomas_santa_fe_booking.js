@@ -28,6 +28,8 @@ async function runSmartBooking(targetDate = null) {
         process.exit(1);
     }
     
+    let bookingSuccessful = false;
+    
     // Get target date from command line argument or environment
     const finalTargetDate = targetDate || process.env.TARGET_DATE || '2025-10-31';
     
@@ -81,26 +83,80 @@ async function runSmartBooking(targetDate = null) {
         // Wait for login to complete
         await page.waitForTimeout(3000);
         
-        // Select target date (October 31st)
+        // Select target date
         const day = config.targetDate.split('-')[2];
-        await page.getByRole('gridcell', { name: day }).click();
-        console.log(`✅ Selected date: ${config.targetDate}`);
+        console.log(`🎯 Looking for date: ${config.targetDate} (day: ${day})`);
         
-        // Find the earliest available tee time
-        await page.waitForSelector('[data-testid="teetimes_choose_rate_button"]', { timeout: 10000 });
-        const teeTimeButtons = await page.locator('[data-testid="teetimes_choose_rate_button"]').all();
-        console.log(`Found ${teeTimeButtons.length} available tee times`);
-        
-        if (teeTimeButtons.length === 0) {
-            throw new Error('No tee times available for the selected date');
+        try {
+            // Try to find and click the date
+            const dateElement = page.getByRole('gridcell', { name: day });
+            await dateElement.waitFor({ timeout: 10000 });
+            await dateElement.click();
+            console.log(`✅ Selected date: ${config.targetDate}`);
+        } catch (error) {
+            console.log(`❌ Could not find date ${day} for ${config.targetDate}`);
+            console.log('💡 This could mean:');
+            console.log('   - The date is not available in the calendar');
+            console.log('   - The date is in the past');
+            console.log('   - The date is too far in the future');
+            console.log('   - Try a different date');
+            return;
         }
+        
+        // Wait a moment for the page to load after date selection
+        await page.waitForTimeout(2000);
+        
+        // Take a screenshot for debugging
+        await page.screenshot({ path: 'debug-after-date-selection.png' });
+        console.log('📸 Screenshot saved: debug-after-date-selection.png');
+        
+        // Check for "No Results!" message first
+        try {
+            await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 8000 });
+            console.log('❌ No tee times available for the selected date');
+            console.log(`📅 Date: ${config.targetDate}`);
+            console.log('💡 Try a different date or check back later');
+            return;
+        } catch (error) {
+            // No "No Results!" message found, continue to check for tee times
+            console.log('✅ No "No Results" message found, checking for tee times...');
+        }
+        
+        // If we get here, we need to check for tee times
+        console.log('🔍 Checking for available tee times...');
+        
+        // Check for available tee times
+        let teeTimeButtons;
+        try {
+            await page.waitForSelector('[data-testid="teetimes_choose_rate_button"]', { timeout: 10000 });
+            teeTimeButtons = await page.locator('[data-testid="teetimes_choose_rate_button"]').all();
+            console.log(`Found ${teeTimeButtons.length} available tee times`);
+            
+            if (teeTimeButtons.length === 0) {
+                console.log('❌ No tee times available for the selected date');
+                console.log(`📅 Date: ${config.targetDate}`);
+                console.log('💡 Try a different date or check back later');
+                return;
+            }
+        } catch (error) {
+            console.log('❌ No tee times found for the selected date');
+            console.log(`📅 Date: ${config.targetDate}`);
+            console.log('💡 This could mean:');
+            console.log('   - No tee times are available for this date');
+            console.log('   - The date is too far in the future');
+            console.log('   - The date is in the past');
+            console.log('   - Try a different date');
+            return;
+        }
+        
+        // If we get here, we have tee times available
+        console.log('✅ Tee times found, proceeding with booking...');
         
         // Click on the first (earliest) tee time
         await teeTimeButtons[0].click();
         console.log('✅ Selected earliest tee time');
         
         // Try each player count until we find one that works
-        let bookingSuccessful = false;
         let finalPlayerCount = null;
         
         for (const playerCount of playerCounts) {
@@ -224,9 +280,13 @@ async function runSmartBooking(targetDate = null) {
         console.error('\n❌ Booking failed:', error.message);
         throw error;
     } finally {
-        // Keep browser open for a bit to see the result
-        console.log('\n⏳ Keeping browser open for 30 seconds to verify booking...');
-        await new Promise(resolve => setTimeout(resolve, 30000));
+        // Only keep browser open if booking was successful
+        if (bookingSuccessful) {
+            console.log('\n⏳ Keeping browser open for 30 seconds to verify booking...');
+            await new Promise(resolve => setTimeout(resolve, 30000));
+        } else {
+            console.log('\n⏳ Closing browser...');
+        }
         
         await browser.close();
     }

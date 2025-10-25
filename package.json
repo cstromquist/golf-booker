@@ -2,13 +2,16 @@
   "name": "golf-booking-bot",
   "version": "1.0.0",
   "description": "Automated golf tee time booking bot for Lomas Santa Fe Executive Golf Course",
-  "main": "src/index.js",
+  "main": "scripts/book_golf.js",
   "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "jest",
+    "book": "node scripts/book_golf.js",
+    "setup": "./scripts/setup.sh",
+    "setup-env": "./scripts/setup_env.sh",
+    "deploy": "./scripts/deploy.sh",
     "build": "docker build -t golf-booking-bot .",
-    "deploy": "docker-compose up -d"
+    "docker-up": "docker-compose up -d",
+    "docker-down": "docker-compose down",
+    "docker-logs": "docker-compose logs -f"
   },
   "keywords": [
     "golf",

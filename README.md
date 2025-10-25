@@ -39,7 +39,11 @@ An automated bot for booking tee times at Lomas Santa Fe Executive Golf Course. 
 
 3. **Test the bot:**
    ```bash
-   npm run dev
+   # Set up your environment first
+   ./scripts/setup_env.sh
+   
+   # Test the smart booking bot
+   node scripts/book_golf.js 2025-11-15
    ```
 
 ## 🏌️ Smart Golf Booking (Recommended)
@@ -202,22 +206,16 @@ node scripts/book_golf.js
 
 ### Legacy Manual Booking
 
-```bash
-# Book for a specific date
-node src/index.js book 2024-01-15
-
-# Interactive mode
-node src/index.js interactive
-
-# Book with configured date
-node src/index.js book
-```
+**Note**: The legacy bot system has been replaced by the Smart Golf Booking Bot. Use the Smart Booking method above for the best experience.
 
 ### Automated Scheduling
 
 ```bash
-# Start cron job scheduler
-node src/index.js cron
+# Set up cron job for midnight releases
+crontab -e
+
+# Add this line to run at midnight daily
+0 0 * * * cd /path/to/golf-booker && node scripts/book_golf.js $(date -d "+1 day" +%Y-%m-%d)
 ```
 
 ### Docker Deployment
@@ -318,11 +316,15 @@ golf-booker/
 ### Scripts
 
 ```bash
-npm start          # Start the bot
-npm run dev        # Development mode with auto-reload
-npm test           # Run tests
-npm run build      # Build Docker image
-npm run deploy     # Deploy with Docker Compose
+# Smart Golf Booking Bot
+node scripts/book_golf.js [DATE]     # Book for specific date
+./scripts/setup_env.sh               # Interactive environment setup
+./scripts/setup.sh                   # Initial project setup
+./scripts/deploy.sh                  # Docker deployment
+
+# Docker commands
+npm run build                          # Build Docker image
+npm run deploy                        # Deploy with Docker Compose
 ```
 
 ## 🚨 Troubleshooting
@@ -352,14 +354,14 @@ npm run deploy     # Deploy with Docker Compose
 ### Debug Mode
 
 ```bash
+# Run with visible browser (default)
+node scripts/book_golf.js 2025-11-15
+
+# Run with headless mode (faster)
+HEADLESS_MODE=true node scripts/book_golf.js 2025-11-15
+
 # Run with debug logging
-LOG_LEVEL=debug node src/index.js book
-
-# Run with browser visible
-HEADLESS_MODE=false node src/index.js book
-
-# Take screenshots on every step
-SCREENSHOT_ON_ERROR=true node src/index.js book
+DEBUG=true node scripts/book_golf.js 2025-11-15
 ```
 
 ## 📊 Monitoring
@@ -367,27 +369,24 @@ SCREENSHOT_ON_ERROR=true node src/index.js book
 ### Logs
 
 ```bash
-# View real-time logs
-tail -f logs/golf-bot.log
-
-# View error logs only
-tail -f logs/golf-bot-error.log
-
-# Docker logs
+# View real-time logs (if using Docker)
 docker-compose logs -f
+
+# Check bot execution
+node scripts/book_golf.js 2025-11-15
 ```
 
 ### Health Checks
 
 ```bash
 # Check if bot is running
-ps aux | grep "node src/index.js"
+ps aux | grep "node scripts/book_golf.js"
 
 # Check Docker container
 docker ps | grep golf-booking-bot
 
-# Test notifications
-node -e "require('./src/services/NotificationService').sendTestNotification()"
+# Test the bot
+node scripts/book_golf.js 2025-11-15
 ```
 
 ## 🔒 Security
