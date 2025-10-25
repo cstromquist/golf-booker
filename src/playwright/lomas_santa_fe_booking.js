@@ -81,11 +81,11 @@ async function runSmartBooking(targetDate = null) {
         console.log('✅ Logged in successfully');
         
         // Wait for login to complete and page to redirect with the target date
-        await page.waitForTimeout(5000);
+        await page.waitForTimeout(3000);
         
-        // Check for "No Results!" message first
+        // Check for "No Results!" message first (quick check)
         try {
-            await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 5000 });
+            await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 2000 });
             console.log('❌ No tee times available for the selected date');
             console.log(`📅 Date: ${config.targetDate}`);
             console.log('💡 Try a different date or check back later');
@@ -95,12 +95,20 @@ async function runSmartBooking(targetDate = null) {
             console.log('✅ No "No Results" message found, checking for tee times...');
         }
         
-        // Check for available tee times
+        // Check for available tee times (optimized)
         let teeTimeButtons;
         try {
-            await page.waitForSelector('[data-testid="teetimes_choose_rate_button"]', { timeout: 10000 });
-            teeTimeButtons = await page.locator('[data-testid="teetimes_choose_rate_button"]').all();
-            console.log(`Found ${teeTimeButtons.length} available tee times`);
+            // Try both possible test IDs for tee time buttons with shorter timeouts
+            try {
+                await page.waitForSelector('[data-testid="teetimes_book_now_button"]', { timeout: 5000 });
+                teeTimeButtons = await page.locator('[data-testid="teetimes_book_now_button"]').all();
+                console.log(`Found ${teeTimeButtons.length} available tee times (using teetimes_book_now_button)`);
+            } catch (error) {
+                // Fallback to the old test ID
+                await page.waitForSelector('[data-testid="teetimes_choose_rate_button"]', { timeout: 5000 });
+                teeTimeButtons = await page.locator('[data-testid="teetimes_choose_rate_button"]').all();
+                console.log(`Found ${teeTimeButtons.length} available tee times (using teetimes_choose_rate_button)`);
+            }
             
             if (teeTimeButtons.length === 0) {
                 console.log('❌ No tee times available for the selected date');

@@ -13,25 +13,21 @@ async function main() {
     const args = process.argv.slice(2);
     let targetDate = args[0];
     
-    // If no date provided, calculate the next Friday (7 days out)
+    // If no date provided, calculate exactly 7 days in advance
     if (!targetDate) {
         const today = new Date();
-        const nextFriday = new Date(today);
+        const targetDateObj = new Date(today);
         
-        // Calculate days until next Friday (Friday = 5)
-        const currentDay = today.getDay();
-        const daysUntilFriday = (5 - currentDay + 7) % 7;
-        const daysToAdd = daysUntilFriday === 0 ? 7 : daysUntilFriday; // If today is Friday, get next Friday
-        
-        nextFriday.setDate(today.getDate() + daysToAdd);
-        
+        // Add exactly 7 days to today's date
+        targetDateObj.setDate(today.getDate() + 7);
+
         // Format as YYYY-MM-DD
-        const year = nextFriday.getFullYear();
-        const month = String(nextFriday.getMonth() + 1).padStart(2, '0');
-        const day = String(nextFriday.getDate()).padStart(2, '0');
+        const year = targetDateObj.getFullYear();
+        const month = String(targetDateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(targetDateObj.getDate()).padStart(2, '0');
         targetDate = `${year}-${month}-${day}`;
         
-        console.log(`📅 No date provided, automatically booking for next Friday: ${targetDate}`);
+        console.log(`📅 No date provided, automatically booking for 7 days in advance: ${targetDate}`);
     }
     
     try {
@@ -53,7 +49,7 @@ Usage:
 
 Examples:
   node scripts/book_golf.js 2025-10-31    # Book for specific date
-  node scripts/book_golf.js               # Book for next Friday (7 days out)
+  node scripts/book_golf.js               # Book for 7 days in advance
 
 Date format: YYYY-MM-DD
 
@@ -65,9 +61,9 @@ This will:
 5. Book the earliest available tee time
 
 Automation:
-- When run without a date, automatically books for the next Friday
-- Perfect for cron jobs that run every Friday at midnight
-- Example: If run on 10/24 at midnight, books for 10/31
+- When run without a date, automatically books for exactly 7 days in advance
+- Perfect for cron jobs that run daily at midnight
+- Example: If run on 10/25 at midnight, books for 11/1
     `);
     process.exit(0);
 }
