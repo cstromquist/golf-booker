@@ -5,8 +5,11 @@
   "main": "scripts/book_golf.js",
   "scripts": {
     "book": "node scripts/book_golf.js",
+    "check-tee-times": "node src/scripts/jc_golf_tee_time_checker.js",
+    "view-summary": "./scripts/view_latest_summary.sh",
     "setup": "./scripts/setup.sh",
     "setup-env": "./scripts/setup_env.sh",
+    "setup-tee-checker": "./scripts/setup_tee_time_checker.sh",
     "deploy": "./scripts/deploy.sh",
     "build": "docker build -t golf-booking-bot .",
     "docker-up": "docker-compose up -d",
@@ -31,7 +34,8 @@
     "crypto": "^1.0.1",
     "moment": "^2.29.4",
     "chalk": "^4.1.2",
-    "inquirer": "^8.2.6"
+    "inquirer": "^8.2.6",
+    "nodemailer": "^6.9.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
