@@ -83,41 +83,80 @@ async function runSmartBooking(targetDate = null) {
         // Wait for login to complete and page to redirect with the target date
         await page.waitForTimeout(3000);
         
-        // Check for "No Results!" message first (quick check)
-        try {
-            await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 2000 });
-            console.log('❌ No tee times available for the selected date');
-            console.log(`📅 Date: ${config.targetDate}`);
-            console.log('💡 Try a different date or check back later');
-            return;
-        } catch (error) {
-            // No "No Results!" message found, continue to check for tee times
-            console.log('✅ No "No Results" message found, checking for tee times...');
-        }
-        
-        // Check for available tee times (optimized)
-        let teeTimeButtons;
-        try {
-            // Try both possible test IDs for tee time buttons with shorter timeouts
+        // Function to check for tee times
+        async function checkForTeeTimes() {
+            // Check for "No Results!" message first (quick check)
             try {
-                await page.waitForSelector('[data-testid="teetimes_book_now_button"]', { timeout: 5000 });
-                teeTimeButtons = await page.locator('[data-testid="teetimes_book_now_button"]').all();
-                console.log(`Found ${teeTimeButtons.length} available tee times (using teetimes_book_now_button)`);
+                await page.waitForSelector('[data-testid="no-records-found-header"]', { timeout: 2000 });
+                console.log('❌ No tee times available for the selected date');
+                return { found: false, buttons: [] };
             } catch (error) {
-                // Fallback to the old test ID
-                await page.waitForSelector('[data-testid="teetimes_choose_rate_button"]', { timeout: 5000 });
-                teeTimeButtons = await page.locator('[data-testid="teetimes_choose_rate_button"]').all();
-                console.log(`Found ${teeTimeButtons.length} available tee times (using teetimes_choose_rate_button)`);
+                // No "No Results!" message found, continue to check for tee times
+                console.log('✅ No "No Results" message found, checking for tee times...');
             }
             
-            if (teeTimeButtons.length === 0) {
-                console.log('❌ No tee times available for the selected date');
-                console.log(`📅 Date: ${config.targetDate}`);
-                console.log('💡 Try a different date or check back later');
-                return;
+            // Check for available tee times (optimized)
+            let teeTimeButtons;
+            try {
+                // Try both possible test IDs for tee time buttons with shorter timeouts
+                try {
+                    await page.waitForSelector('[data-testid="teetimes_book_now_button"]', { timeout: 5000 });
+                    teeTimeButtons = await page.locator('[data-testid="teetimes_book_now_button"]').all();
+                    console.log(`Found ${teeTimeButtons.length} available tee times (using teetimes_book_now_button)`);
+                } catch (error) {
+                    // Fallback to the old test ID
+                    await page.waitForSelector('[data-testid="teetimes_choose_rate_button"]', { timeout: 5000 });
+                    teeTimeButtons = await page.locator('[data-testid="teetimes_choose_rate_button"]').all();
+                    console.log(`Found ${teeTimeButtons.length} available tee times (using teetimes_choose_rate_button)`);
+                }
+                
+                if (teeTimeButtons.length === 0) {
+                    console.log('❌ No tee times available for the selected date');
+                    return { found: false, buttons: [] };
+                }
+                
+                return { found: true, buttons: teeTimeButtons };
+            } catch (error) {
+                console.log('❌ No tee times found for the selected date');
+                return { found: false, buttons: [] };
             }
-        } catch (error) {
-            console.log('❌ No tee times found for the selected date');
+        }
+
+        // First attempt: check for tee times
+        console.log('🔍 Checking for tee times...');
+        let teeTimeResult = await checkForTeeTimes();
+        
+        // If no tee times found on first attempt, retry up to 4 more times (5 total)
+        if (!teeTimeResult.found) {
+            console.log('❌ No tee times found on first attempt, retrying...');
+            const maxRetries = 5;
+            const waitTimes = [2000, 3000, 4000, 5000, 10000]; // Wait times between attempts
+            
+            for (let attempt = 2; attempt <= maxRetries; attempt++) {
+                console.log(`\n🔄 Attempt ${attempt}/${maxRetries}: Reloading page to refresh tee times...`);
+                await page.reload();
+                await page.waitForTimeout(3000); // Wait for page to load
+                
+                teeTimeResult = await checkForTeeTimes();
+                
+                if (teeTimeResult.found) {
+                    console.log(`✅ Found tee times on attempt ${attempt}`);
+                    break;
+                } else {
+                    console.log(`❌ No tee times found on attempt ${attempt}`);
+                    if (attempt < maxRetries) {
+                        const waitTime = waitTimes[attempt - 2]; // Get wait time for this attempt
+                        console.log(`⏳ Waiting ${waitTime/1000} seconds before retry...`);
+                        await page.waitForTimeout(waitTime);
+                    }
+                }
+            }
+        } else {
+            console.log('✅ Found tee times on first attempt');
+        }
+        
+        if (!teeTimeResult.found) {
+            console.log('\n❌ FAILED: No tee times found after 5 attempts');
             console.log(`📅 Date: ${config.targetDate}`);
             console.log('💡 This could mean:');
             console.log('   - No tee times are available for this date');
@@ -126,6 +165,8 @@ async function runSmartBooking(targetDate = null) {
             console.log('   - Try a different date');
             return;
         }
+        
+        const teeTimeButtons = teeTimeResult.buttons;
         
         // If we get here, we have tee times available
         console.log('✅ Tee times found, proceeding with booking...');
