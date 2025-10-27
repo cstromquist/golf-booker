@@ -6,6 +6,7 @@
   "scripts": {
     "book": "node scripts/book_golf.js",
     "check-tee-times": "node src/scripts/jc_golf_tee_time_checker.js",
+    "refresh-token": "node src/scripts/get_jc_golf_token.js",
     "view-summary": "./scripts/view_latest_summary.sh",
     "setup": "./scripts/setup.sh",
     "setup-env": "./scripts/setup_env.sh",

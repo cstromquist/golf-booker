@@ -1,0 +1,32 @@
+curl 'https://jcplayer5.cps.golf/identityapi/connect/token' \
+  -H 'accept: application/json, text/plain, */*' \
+  -H 'accept-language: en-US,en;q=0.9,fr;q=0.8,pt;q=0.7' \
+  -H 'cache-control: no-cache, no-store, must-revalidate' \
+  -H 'client-id: onlineresweb' \
+  -H 'content-type: application/x-www-form-urlencoded' \
+  -b 'V4COOKIE=1761367573.18.59.629806|52a1a896ee0f55eae67f36855d7b3b3e; V4COOKIE=1761367573.179.59.441963|f7e3deb4fdffb465434cda3abb4c2600' \
+  -H 'expires: Sat, 01 Jan 2000 00:00:00 GMT' \
+  -H 'if-modified-since: 0' \
+  -H 'origin: https://jcplayer5.cps.golf' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://jcplayer5.cps.golf/onlineresweb/search-teetime?TeeOffTimeMin=0&TeeOffTimeMax=23.999722222222225' \
+  -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+  -H 'x-apikey: 8ea2914e-cac2-48a7-a3e5-e0f41350bf3a' \
+  -H 'x-componentid: 1' \
+  -H 'x-ismobile: false' \
+  -H 'x-moduleid: 7' \
+  -H 'x-productid: 1' \
+  -H 'x-requestid: f2c46ca6-3eb7-7378-9443-86a863943f96' \
+  -H 'x-siteid: 16' \
+  -H 'x-terminalid: 3' \
+  -H 'x-timezone-offset: 420' \
+  -H 'x-timezoneid: America/Los_Angeles' \
+  -H 'x-websiteid: a347a421-5a62-46ca-8ecd-08d8d810c321' \
+  --data-raw 'grant_type=password&scope=openid%20profile%20onlinereservation%20sale%20inventory%20sh%20customer%20email%20recommend%20references&username=chris.stromquist%40gmail.com&password=Gimhas789*&client_id=js1&client_secret=v4secret'

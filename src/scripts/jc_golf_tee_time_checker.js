@@ -16,6 +16,7 @@ const axios = require('axios');
 const nodemailer = require('nodemailer');
 const winston = require('winston');
 const moment = require('moment');
+const { refreshToken } = require('./get_jc_golf_token');
 
 // Configure logging
 const logger = winston.createLogger({
@@ -193,6 +194,27 @@ function logDetailedSummary(earlyTeeTimesFound, totalDaysChecked) {
     logger.info('Detailed summary saved to logs/tee-time-summary.log');
 }
 
+// Handle token refresh when authentication fails
+async function handleTokenRefresh() {
+    try {
+        logger.info('🔄 Bearer token expired, attempting to refresh...');
+        await refreshToken();
+        
+        // Reload environment variables to get the new token
+        delete require.cache[require.resolve('dotenv')];
+        require('dotenv').config();
+        
+        // Update the headers with the new token
+        config.headers.Authorization = process.env.JC_GOLF_BEARER_TOKEN;
+        
+        logger.info('✅ Token refreshed successfully, retrying request...');
+        return true;
+    } catch (error) {
+        logger.error('❌ Failed to refresh token:', error.message);
+        return false;
+    }
+}
+
 // Create email transporter
 function createEmailTransporter() {
     return nodemailer.createTransport({
@@ -274,7 +296,7 @@ async function sendErrorNotification(error, searchDate) {
 }
 
 // Check for tee times on a specific date
-async function checkTeeTimesForDate(searchDate) {
+async function checkTeeTimesForDate(searchDate, retryCount = 0) {
     try {
         logger.info(`Checking tee times for date: ${searchDate}`);
         
@@ -328,7 +350,16 @@ async function checkTeeTimesForDate(searchDate) {
             logger.error(`API Error: ${error.response.status} - ${error.response.statusText}`);
             logger.error('Response data:', error.response.data);
             
-            if (error.response.status === 401) {
+            if (error.response.status === 401 && retryCount === 0) {
+                // Try to refresh token and retry once
+                const tokenRefreshed = await handleTokenRefresh();
+                if (tokenRefreshed) {
+                    logger.info('🔄 Retrying request with refreshed token...');
+                    return await checkTeeTimesForDate(searchDate, retryCount + 1);
+                } else {
+                    throw new Error('Authentication failed - Unable to refresh token');
+                }
+            } else if (error.response.status === 401) {
                 throw new Error('Authentication failed - Bearer token may be expired');
             } else if (error.response.status === 403) {
                 throw new Error('Access forbidden - Check bearer token permissions');
