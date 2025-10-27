@@ -34,10 +34,11 @@ nano .env
 
 ### 3. Required Environment Variables
 
-**Minimum Required (Script works with just this):**
+**Required for automatic token management:**
 ```bash
-# JC Golf API Configuration
-JC_GOLF_BEARER_TOKEN=your_bearer_token_here
+# JC Golf Login Credentials (REQUIRED)
+JC_GOLF_USERNAME=your_email@gmail.com
+JC_GOLF_PASSWORD=your_password
 ```
 
 **Optional (For email notifications):**
@@ -53,6 +54,8 @@ CLASS_CODE=JCPWE
 MEMBER_STORE_ID=5
 ```
 
+**Note:** The `JC_GOLF_BEARER_TOKEN` is automatically managed by the script and will be added to your .env file when you first run `npm run refresh-token`.
+
 ### 4. Available NPM Scripts
 
 ```bash
@@ -66,14 +69,20 @@ npm run view-summary
 npm run setup-tee-checker
 ```
 
-### 5. Get Your Bearer Token
+### 5. Set Up Your JC Golf Credentials
 
-1. Go to the JC Golf website and log in
-2. Open browser developer tools (F12)
-3. Go to Network tab
-4. Navigate to the tee times page
-5. Look for API requests to `jcplayer5.cps.golf`
-6. Copy the `Authorization: Bearer ...` token from the request headers
+1. Add your JC Golf login credentials to the `.env` file:
+   ```bash
+   JC_GOLF_USERNAME=your_email@gmail.com
+   JC_GOLF_PASSWORD=your_password
+   ```
+
+2. Run the token refresh to get your first bearer token:
+   ```bash
+   npm run refresh-token
+   ```
+
+**Note:** The script will automatically manage bearer tokens for you - no manual token copying needed!
 
 ### 6. Set Up Gmail App Password (Optional)
 

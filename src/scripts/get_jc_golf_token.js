@@ -51,8 +51,8 @@ const tokenConfig = {
     data: {
         grant_type: 'password',
         scope: 'openid profile onlinereservation sale inventory sh customer email recommend references',
-        username: 'chris.stromquist@gmail.com',
-        password: 'Gimhas789*',
+        username: process.env.JC_GOLF_USERNAME,
+        password: process.env.JC_GOLF_PASSWORD,
         client_id: 'js1',
         client_secret: 'v4secret'
     }
@@ -135,9 +135,28 @@ async function getFreshToken() {
     }
 }
 
+// Validate required environment variables
+function validateCredentials() {
+    const requiredVars = ['JC_GOLF_USERNAME', 'JC_GOLF_PASSWORD'];
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+        console.error(`❌ Missing required environment variables: ${missingVars.join(', ')}`);
+        console.error('Please set these in your .env file:');
+        missingVars.forEach(v => console.error(`export ${v}="your_value_here"`));
+        console.error('');
+        console.error('Example .env entries:');
+        console.error('JC_GOLF_USERNAME=your_email@gmail.com');
+        console.error('JC_GOLF_PASSWORD=your_password');
+        process.exit(1);
+    }
+}
+
 // Main function
 async function refreshToken() {
     try {
+        validateCredentials();
+        
         const token = await getFreshToken();
         updateEnvFile(token);
         
