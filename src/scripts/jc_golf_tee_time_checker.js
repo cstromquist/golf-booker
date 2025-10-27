@@ -62,8 +62,8 @@ const config = {
     
     // Search Configuration
     maxTeeTime: 7, // 7 AM in 24-hour format
-    searchDaysAhead: 14, // Search up to 14 days ahead
-    courseIds: process.env.COURSE_IDS || '22,6', // Default to Crossings and another course
+    searchDaysAhead: 9, // Search up to 14 days ahead
+    courseIds: process.env.COURSE_IDS || '22,6,2,4', // Crossings, Encinitas Ranch, Rancho Bernardo Inn, Twin Oaks
     classCode: process.env.CLASS_CODE || 'JCPWE',
     memberStoreId: process.env.MEMBER_STORE_ID || '5',
     
@@ -113,7 +113,7 @@ function createDetailedSummary(earlyTeeTimesFound, totalDaysChecked) {
     summary.push('');
     
     if (earlyTeeTimesFound.length === 0) {
-        summary.push('❌ No early tee times found in the next 14 days');
+        summary.push(`❌ No early tee times found in the next ${config.searchDaysAhead} days`);
         summary.push('');
         summary.push(`📊 Checked ${totalDaysChecked} days for tee times before 7:00 AM`);
         summary.push('💡 Early tee times are typically available 1-2 weeks in advance');
